@@ -89,7 +89,7 @@ sound(out_sentence, Fs);
 pause(3)
 
 % Sentence 3: /Magandang ga'bi!/
-ga_syllable = resample(ga_syllable, 90, 100);
+ga_fast = resample(ga_syllable, 90, 100);
 % add stress and falling Intonation 
 % divide the syllable /bi/
 mid = round(length(bi_syllable) / 2);
@@ -103,7 +103,7 @@ env = [ones(length(bi_part1), 1); linspace(1, 0.5, length(bi_part2_falling))'];
 s_bi_final = s_bi_final .* env * 2.5; % 2.5x Gain for Exclamatory Stress (!)
 
 %combine for sentence 3
-sentence_3 = [ma_fast; gan_fast; dang_fast; ga_syllable; s_bi_final];
+sentence_3 = [ma_fast; gan_fast; dang_fast; ga_fast; s_bi_final];
 
 figure;
 plot((0:length(sentence_3)-1)/Fs, sentence_3);
