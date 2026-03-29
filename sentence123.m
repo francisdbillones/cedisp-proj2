@@ -11,8 +11,8 @@ ylabel('Amplitude');
 title('Full audio signal');
 
 ma_syllable = x(t >= 0.46 & t <= 0.72);
-gan_syllable = x(t >= 1.58 & t <= 2.0);
-dang_syllable = x(t >= 2.71 & t <= 3.18);
+gan_syllable = x(t >= 1.59 & t <= 1.95);
+dang_syllable = x(t >= 2.71 & t <= 3.15);
 ha_syllable = x(t >= 3.85 & t <= 4.1);
 pon_syllable = x(t >= 4.88 & t <= 5.2);
 ga_syllable = x(t >= 6.90 & t <= 7.1);
@@ -24,9 +24,9 @@ gan_fast  = resample(gan_syllable, 90, 100);
 dang_fast = resample(dang_syllable, 90, 100);
 
 % Sentence 1
-pon_fast  = resample(pon_syllable, 90, 100);
-s1_dang_syllable = resample(dang_syllable, round(0.925*100), 100);
-s1_ha_syllable = resample(ha_syllable, round(0.925*100), 100);
+pon_fast  = resample(pon_syllable, 95, 100);
+s1_dang_syllable = resample(dang_syllable, round(0.85*100), 100);
+s1_ha_syllable = resample(ha_syllable, round(0.85*100), 100);
 
 sentence = [ma_fast; 
              gan_fast; 
