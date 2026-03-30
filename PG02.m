@@ -22,9 +22,9 @@ gan_syllable = x(t >= 1.59 & t <= 1.95);
 dang_syllable = x(t >= 2.71 & t <= 3.1);
 ha_syllable = x(t >= 3.85 & t <= 4.11);
 pon_syllable = x(t >= 4.88 & t <= 5.2);
+o_syllable = x(t >= 5.87 & t <= 6.18);
 ga_syllable = x(t >= 6.98 & t <= 7.1);
 bi_syllable = x(t >= 8.00 & t <= 8.33);
-o_syllable = x(t >= 5.87 & t <= 6.18);
 
 % Speed up "Magandang" for greeting (10% faster)
 ma_fast = resample(ma_syllable, 90, 100);
@@ -72,9 +72,9 @@ for i = 1:60
 end
 
 sentence_2 = [
-    ma_syllable
-    gan_syllable
-    dang_syllable
+    ma_syllable;
+    gan_syllable;
+    dang_syllable;
     ha_unstressed; 
     pon_syl_ques
 ];
@@ -92,6 +92,7 @@ bi_final = [bi_p1; bi_p2] .* env * 2.0;  % 2.0x gain to distinguish ga'bi from '
 % combine for sentence 3
 sentence_3 = [ma_fast; gan_fast; dang_fast; ga_fast; bi_final];
 
+
 % Sentence 4: /Magandang 'gabi, o ga'bi?/
 % Restore global t vector (modified in Sentence 2)
 t = (0:length(x)-1) / Fs;
@@ -106,52 +107,55 @@ s4_ma_fast   = resample(s4_ma_syllable, 90, 100);
 s4_gan_fast  = resample(s4_gan_syllable, 90, 100);
 s4_dang_fast = resample(s4_dang_syllable, 90, 100);
 
-%% Part 1: Magandang 'gabi? (Interrogative/Rising)
 % 'ga is stressed -> increase amplitude
-ga_p1 = s4_ga_syllable * 1.5;
+ga_decl = s4_ga_syllable * 1.5;
 
+% bi has falling intonation at the end
 mid = round(length(bi_syllable) / 2);
 bi_part1 = bi_syllable(1:mid);
 bi_part2 = bi_syllable(mid+1:end);
 
-% 'bi has a rising intonation for the question
-bi_p1_part2_rising = resample(bi_part2, 75, 100);
+% create a falling intonation, resample the second half to be 25% slower (lowers pitch)
+bi_part2_falling = resample(bi_part2, 125, 100);
 
-% Combine and apply higher volume for stress and question emphasis
-s_bi_p1 = [bi_part1; bi_p1_part2_rising];
-env_rise = [ones(length(bi_part1), 1); linspace(1, 1.3, length(bi_p1_part2_rising))'];
-s_bi_p1 = s_bi_p1 .* env_rise * 2.0; % 2.0x Gain for question stress
+% Combine and apply a volume decay envelope for a natural "tail"
+s_bi_decl = [bi_part1; bi_part2_falling];
+env_fall = [ones(length(bi_part1), 1); linspace(1, 0.4, length(bi_part2_falling))'];
+s_bi_decl = s_bi_decl .* env_fall;
 
 glottal = zeros(round(0.01 * Fs), 1); % tiny space between syllables
 
 % Trim silences for a shorter pause between 'ga' and 'bi' in the first word
-ga_p1_trim = ga_p1(1:end - round(0.12 * Fs)); % remove 120ms trailing silence
-bi_p1_trim = s_bi_p1(round(0.08 * Fs):end);   % remove 80ms leading silence
+ga_decl_trim = ga_decl(1:end - round(0.12 * Fs)); % remove 120ms trailing silence
+bi_decl_trim = s_bi_decl(round(0.08 * Fs):end);   % remove 80ms leading silence
 
-part1_rising = [s4_ma_fast; s4_gan_fast; s4_dang_fast; glottal; ga_p1_trim; bi_p1_trim];
+declarative = [s4_ma_fast; s4_gan_fast; s4_dang_fast; glottal; ga_decl_trim; bi_decl_trim];
 
 pause_comma = zeros(round(0.25 * Fs), 1); % 250ms pause
 
-%% Part 2: o ga'bi. (Declarative/Falling)
 % o stays normal
-o_p2 = o_syllable;
+o_int = o_syllable;
 
 % ga stays normal
-ga_p2 = s4_ga_syllable;
+ga_int = s4_ga_syllable;
 
-% 'bi has falling intonation at the end
-bi_p2_part2_falling = resample(bi_part2, 125, 100);
+% 'bi is stressed and has a rising intonation for the question
+% We resample the second half to be 25% faster (raises pitch)
+bi_part2_rising = resample(bi_part2, 75, 100);
 
-% Combine and apply a volume decay envelope for a natural "tail"
-s_bi_p2 = [bi_part1; bi_p2_part2_falling];
-env_fall = [ones(length(bi_part1), 1); linspace(1, 0.4, length(bi_p2_part2_falling))'];
-s_bi_p2 = s_bi_p2 .* env_fall;
+% Combine and apply higher volume for stress and question emphasis
+s_bi_int = [bi_part1; bi_part2_rising];
+env_rise = [ones(length(bi_part1), 1); linspace(1, 1.3, length(bi_part2_rising))'];
+s_bi_int = s_bi_int .* env_rise * 2.0; % 2.0x Gain for question stress
 
-part2_falling = [o_p2; glottal; ga_p2; s_bi_p2];
+interrogative = [o_int; glottal; ga_int; s_bi_int];
 
-sentence_4 = [part1_rising; pause_comma; part2_falling];
+sentence_4 = [declarative; pause_comma; interrogative];
 
-% Normalize to prevent clipping
+% Normalize sentences to prevent clipping
+sentence_1 = sentence_1 / max(abs(sentence_1)) * 0.9;
+sentence_2 = sentence_2 / max(abs(sentence_2)) * 0.9;
+sentence_3 = sentence_3 / max(abs(sentence_3)) * 0.9;
 sentence_4 = sentence_4 / max(abs(sentence_4)) * 0.9;
 
 % combine all 4 sentences and 1 second silence between each sentence
@@ -186,7 +190,7 @@ xlabel('Time (s)'); ylabel('Amplitude');
 
 subplot(4,1,4);
 plot((0:length(sentence_4)-1)/Fs, sentence_4);
-title("Sentence 4: /Magandang 'gabi?, o ga'bi./");
+title("Sentence 4: /Magandang 'gabi, o ga'bi?/ (Good taro, or evening?)");
 xlabel('Time (s)'); ylabel('Amplitude');
 
 % write synthesized sentences in WAV files
