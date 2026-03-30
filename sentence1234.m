@@ -93,7 +93,18 @@ bi_final = [bi_p1; bi_p2] .* env * 2.0;  % 2.0x gain to distinguish ga'bi from '
 sentence_3 = [ma_fast; gan_fast; dang_fast; ga_fast; bi_final];
 
 % Sentence 4: /Magandang 'gabi, o ga'bi?/
-s4_ga_syllable = x(t >= 6.90 & t <= 7.32); % Using longer ga mapping for sentence 4
+% Restore global t vector (modified in Sentence 2)
+t = (0:length(x)-1) / Fs;
+
+% Use specific syllable indices from sentence4.m for identical result
+s4_ma_syllable = x(t >= 0.45 & t <= 0.72);
+s4_gan_syllable = x(t >= 1.58 & t <= 1.95);
+s4_dang_syllable = x(t >= 2.72 & t <= 3.13);
+s4_ga_syllable = x(t >= 6.90 & t <= 7.32); 
+
+s4_ma_fast   = resample(s4_ma_syllable, 90, 100);
+s4_gan_fast  = resample(s4_gan_syllable, 90, 100);
+s4_dang_fast = resample(s4_dang_syllable, 90, 100);
 
 % 'ga is stressed -> increase amplitude
 ga_decl = s4_ga_syllable * 1.5;
@@ -117,7 +128,7 @@ glottal = zeros(round(0.01 * Fs), 1); % tiny space between syllables
 ga_decl_trim = ga_decl(1:end - round(0.12 * Fs)); % remove 120ms trailing silence
 bi_decl_trim = s_bi_decl(round(0.08 * Fs):end);   % remove 80ms leading silence
 
-declarative = [ma_fast; gan_fast; dang_fast; glottal; ga_decl_trim; bi_decl_trim];
+declarative = [s4_ma_fast; s4_gan_fast; s4_dang_fast; glottal; ga_decl_trim; bi_decl_trim];
 
 pause_comma = zeros(round(0.25 * Fs), 1); % 250ms pause
 
