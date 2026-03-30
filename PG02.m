@@ -97,7 +97,6 @@ sentence_3 = [ma_fast; gan_fast; dang_fast; ga_fast; bi_final];
 % Restore global t vector (modified in Sentence 2)
 t = (0:length(x)-1) / Fs;
 
-% Use specific syllable indices from sentence4.m for identical result
 s4_ma_syllable = x(t >= 0.45 & t <= 0.72);
 s4_gan_syllable = x(t >= 1.58 & t <= 1.95);
 s4_dang_syllable = x(t >= 2.72 & t <= 3.13);
@@ -125,11 +124,8 @@ s_bi_decl = s_bi_decl .* env_fall;
 
 glottal = zeros(round(0.01 * Fs), 1); % tiny space between syllables
 
-% Trim silences for a shorter pause between 'ga' and 'bi' in the first word
-ga_decl_trim = ga_decl(1:end - round(0.12 * Fs)); % remove 120ms trailing silence
-bi_decl_trim = s_bi_decl(round(0.08 * Fs):end);   % remove 80ms leading silence
-
-declarative = [s4_ma_fast; s4_gan_fast; s4_dang_fast; glottal; ga_decl_trim; bi_decl_trim];
+% keep the pause between 'ga' and 'bi' for the first word
+declarative = [s4_ma_fast; s4_gan_fast; s4_dang_fast; glottal; ga_decl; s_bi_decl];
 
 pause_comma = zeros(round(0.25 * Fs), 1); % 250ms pause
 
@@ -148,7 +144,11 @@ s_bi_int = [bi_part1; bi_part2_rising];
 env_rise = [ones(length(bi_part1), 1); linspace(1, 1.3, length(bi_part2_rising))'];
 s_bi_int = s_bi_int .* env_rise * 2.0; % 2.0x Gain for question stress
 
-interrogative = [o_int; glottal; ga_int; s_bi_int];
+% trim silences for a shorter pause between 'ga' and 'bi' in the second word
+ga_int_trim = ga_int(1:end - round(0.12 * Fs)); % remove 120ms trailing silence
+bi_int_trim = s_bi_int(round(0.08 * Fs):end);   % remove 80ms leading silence
+
+interrogative = [o_int; glottal; ga_int_trim; bi_int_trim];
 
 sentence_4 = [declarative; pause_comma; interrogative];
 
