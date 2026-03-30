@@ -86,7 +86,7 @@ mid = round(length(bi_syllable) / 2);
 bi_p1 = bi_syllable(1:mid);
 bi_p2 = resample(bi_syllable(mid+1:end), 110, 100); % create a falling intonation, resample the second half to be 10% slower (lowers pitch)
 env = [ones(length(bi_p1), 1); linspace(1, 0.4, length(bi_p2))']; % apply a volume decay envelope for a natural "tail"
-bi_final = [bi_p1; bi_p2] .* env * 2.0; % 2.0x Gain for Exclamatory Stress (!)
+bi_final = [bi_p1; bi_p2] .* env * 2.0;  % 2.0x gain to distinguish ga'bi from 'gabi
 
 % combine for sentence 3
 sentence_3 = [ma_fast; gan_fast; dang_fast; ga_fast; bi_final];
