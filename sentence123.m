@@ -1,3 +1,10 @@
+% CEDISP1 Project - Phase 2: Speech Synthesis
+% S30 PG02
+% Billones, Francis Hubert
+% Go, John William
+% Lopez, Kent Xavier
+% Placer, Paul John
+
 clear; clc; close all;
 
 [x, Fs] = audioread('PG02.wav');
@@ -23,7 +30,7 @@ ma_fast = resample(ma_syllable, 90, 100);
 gan_fast = resample(gan_syllable, 90, 100);
 dang_fast = resample(dang_syllable, 90, 100);
 
-% Sentence 1
+% Sentence 1: /Magandang 'hapon!/
 % Stressed "dang" and "ha", falling intonation for "pon"
 s1_dang_syllable = resample(dang_syllable, round(0.825*100), 100);
 s1_ha_syllable = resample(ha_syllable, round(0.825*100), 100);
@@ -36,16 +43,6 @@ sentence_1 = [
     s1_ha_syllable; 
     pon_fast
 ];
-
-figure;
-plot((0:length(sentence_1)-1) / Fs, sentence_1);
-xlabel('Time (s)');
-ylabel('Amplitude');
-title("/Magandang 'hapon!/ (Good afternoon!)");
-
-sound(sentence_1, Fs);
-pause(3);
-
 
 % Sentence 2: /Magandang ha'pon?/ 
 % turning 'hapon! to ha'pon?
@@ -81,16 +78,6 @@ sentence_2 = [
     pon_syl_ques
 ];
 
-figure;
-plot((0:length(sentence_2)-1) / Fs, sentence_2);
-xlabel('Time (s)');
-ylabel('Amplitude');
-title("/Magandang ha'pon?/ (beautiful japanese?)");
-
-sound(sentence_2, Fs);
-pause(3);
-
-
 % Sentence 3: /Magandang ga'bi!/
 ga_fast = resample(ga_syllable, 90, 100);
 % add stress and falling Intonation 
@@ -104,15 +91,35 @@ bi_final = [bi_p1; bi_p2] .* env * 2.0; % 2.0x Gain for Exclamatory Stress (!)
 % combine for sentence 3
 sentence_3 = [ma_fast; gan_fast; dang_fast; ga_fast; bi_final];
 
-figure;
+% combine all 4 sentences and 1 second silence between each sentence
+combined_sentences = [
+    sentence_1; 
+    zeros(Fs,1);   
+    sentence_2; 
+    zeros(Fs,1);
+    sentence_3;
+];
+
+sound(combined_sentences, Fs); % play combined sentences
+
+%subplot all four sentences
+figure (2);
+subplot(3,1,1);
+plot((0:length(sentence_1)-1)/Fs, sentence_1);
+title("Sentence 1: /Magandang 'hapon!/ (Good afternoon!)");
+xlabel('Time (s)'); ylabel('Amplitude');
+
+subplot(3,1,2);
+plot((0:length(sentence_2)-1)/Fs, sentence_2);
+title("Sentence 2: /Magandang ha'pon?/ (Beautiful Japan/Japansese?)");
+xlabel('Time (s)'); ylabel('Amplitude');
+
+subplot(3,1,3);
 plot((0:length(sentence_3)-1)/Fs, sentence_3);
-xlabel('Time (s)');
-ylabel('Amplitude');
-title("/Magandang ga'bi!/ (Good evening!)");
+title("Sentence 3: /Magandang ga'bi!/ (Good evening!)");
+xlabel('Time (s)'); ylabel('Amplitude');
 
-sound(sentence_3, Fs);
-
-
+% write synthesized sentences in WAV files
 audiowrite("sentence_1_02.wav", sentence_1, Fs);
 audiowrite("sentence_2_02.wav", sentence_2, Fs);
 audiowrite("sentence_3_02.wav", sentence_3, Fs);
